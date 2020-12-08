@@ -1,4 +1,5 @@
 #define private public
+#define METRICS_UNIT_TEST
 #include "metrics/metrics.h"
 
 #include <gtest/gtest.h>
@@ -16,6 +17,8 @@ public:
         metrics::e_metrics::get_instance().start();
         std::size_t test_dump_interval{2};
         METRICS_CONFIG_SET("dump_interval", test_dump_interval);
+        bool dump_json_format{false};
+        METRICS_CONFIG_SET("dump_json_format", dump_json_format);
     }
     void TearDown() {
         SLEEP_SECOND(3);
@@ -63,6 +66,37 @@ TEST_F(metrics_test, basic_function) {
     }
 }
 
+
+
+void test_metrics_time_thread_start_end(std::string metrics_name, int sleep_time_millsecond) {
+    METRICS_TIMER_START(metrics_name);
+    SLEEP_MILLSECOND(sleep_time_millsecond);
+    METRICS_TIMER_STOP(metrics_name);
+}
+
+void test_metrics_time_thread_record(std::string metrics_name, int sleep_time_millsecond) {
+    METRICS_TIME_RECORD(metrics_name);
+    SLEEP_MILLSECOND(sleep_time_millsecond);
+}
+
+TEST_F(metrics_test, test_multithread) {
+    std::thread t1 = std::thread(&test_metrics_time_thread_start_end, "test_start_end", 1000);
+    t1.detach();
+    SLEEP_MILLSECOND(300);
+    std::thread t2 = std::thread(&test_metrics_time_thread_start_end, "test_start_end", 100);
+    t2.detach();
+    SLEEP_MILLSECOND(600);
+    std::thread t3 = std::thread(&test_metrics_time_thread_record, "test_record", 1000);
+    t3.detach();
+    SLEEP_MILLSECOND(300);
+    std::thread t4 = std::thread(&test_metrics_time_thread_record, "test_record", 100);
+    t4.detach();
+    SLEEP_MILLSECOND(600);
+    SLEEP_SECOND(2);
+    METRICS_COUNTER_INCREMENT("drives", 1);
+    SLEEP_SECOND(3);
+}
+
 TEST_F(metrics_test, test_timed_out) {
     std::string test_name{"TEST_TIME_OUT_DEFAULT"};
     for (auto index = 0; index < TEST_CASE_SIZE; ++index) {
@@ -99,34 +133,6 @@ TEST_F(metrics_test, test_timed_out) {
     SLEEP_SECOND(2);
 }
 
-void test_metrics_time_thread_start_end(std::string metrics_name, int sleep_time_millsecond) {
-    METRICS_TIMER_START(metrics_name);
-    SLEEP_MILLSECOND(sleep_time_millsecond);
-    METRICS_TIMER_STOP(metrics_name);
-}
-
-void test_metrics_time_thread_record(std::string metrics_name, int sleep_time_millsecond) {
-    METRICS_TIME_RECORD(metrics_name);
-    SLEEP_MILLSECOND(sleep_time_millsecond);
-}
-
-TEST_F(metrics_test, test_multithread) {
-    std::thread t1 = std::thread(&test_metrics_time_thread_start_end, "test_start_end", 1000);
-    t1.detach();
-    SLEEP_MILLSECOND(300);
-    std::thread t2 = std::thread(&test_metrics_time_thread_start_end, "test_start_end", 100);
-    t2.detach();
-    SLEEP_MILLSECOND(600);
-    std::thread t3 = std::thread(&test_metrics_time_thread_record, "test_record", 1000);
-    t3.detach();
-    SLEEP_MILLSECOND(300);
-    std::thread t4 = std::thread(&test_metrics_time_thread_record, "test_record", 100);
-    t4.detach();
-    SLEEP_MILLSECOND(600);
-    SLEEP_SECOND(2);
-    METRICS_COUNTER_INCREMENT("drives", 1);
-    SLEEP_SECOND(3);
-}
 // #endif
 #if 0
 // to test metrics performance

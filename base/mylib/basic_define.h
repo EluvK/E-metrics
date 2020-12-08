@@ -4,49 +4,49 @@
 
 // CLASS helper
 
-#define XDECLARE_DEFAULTED_DEFAULT_CONSTRUCTOR(CLASS_NAME) CLASS_NAME() = default
+#define DEFAULTED_DEFAULT_CONSTRUCTOR(CLASS_NAME) CLASS_NAME() = default
 
-#define XDECLARE_DELETED_DEFAULT_CONSTRUCTOR(CLASS_NAME) CLASS_NAME() = delete
+#define DELETED_DEFAULT_CONSTRUCTOR(CLASS_NAME) CLASS_NAME() = delete
 
-#define XDECLARE_DEFAULTED_COPY_SEMANTICS(CLASS_NAME)                                                                                                                              \
+#define DEFAULTED_COPY_SEMANTICS(CLASS_NAME)                                                                                                                                       \
     CLASS_NAME(CLASS_NAME const &) = default;                                                                                                                                      \
     CLASS_NAME & operator=(CLASS_NAME const &) = default
 
-#define XDECLARE_DELETED_COPY_SEMANTICS(CLASS_NAME)                                                                                                                                \
+#define DELETED_COPY_SEMANTICS(CLASS_NAME)                                                                                                                                         \
     CLASS_NAME(CLASS_NAME const &) = delete;                                                                                                                                       \
     CLASS_NAME & operator=(CLASS_NAME const &) = delete
 
-#define XDECLARE_DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                              \
+#define DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                                       \
     CLASS_NAME(CLASS_NAME &&) = default;                                                                                                                                           \
     CLASS_NAME & operator=(CLASS_NAME &&) = default
 
-#define XDECLARE_DELETED_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                                \
+#define DELETED_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                                         \
     CLASS_NAME(CLASS_NAME &&) = delete;                                                                                                                                            \
     CLASS_NAME & operator=(CLASS_NAME &&) = delete
 
-#define XDECLARE_DEFAULTED_COPY_AND_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                     \
-    XDECLARE_DEFAULTED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                 \
-    XDECLARE_DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)
+#define DEFAULTED_COPY_AND_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                              \
+    DEFAULTED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                          \
+    DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)
 
-#define XDECLARE_DELETED_COPY_AND_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                       \
-    XDECLARE_DELETED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                   \
-    XDECLARE_DELETED_MOVE_SEMANTICS(CLASS_NAME)
+#define DELETED_COPY_AND_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                                \
+    DELETED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                            \
+    DELETED_MOVE_SEMANTICS(CLASS_NAME)
 
-#define XDECLARE_DELETED_COPY_DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                 \
-    XDECLARE_DELETED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                   \
-    XDECLARE_DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)
+#define DELETED_COPY_DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                          \
+    DELETED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                            \
+    DEFAULTED_MOVE_SEMANTICS(CLASS_NAME)
 
-#define XDECLARE_DELETED_COPY_AND_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                       \
-    XDECLARE_DELETED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                   \
-    XDECLARE_DELETED_MOVE_SEMANTICS(CLASS_NAME)
+#define DELETED_COPY_AND_MOVE_SEMANTICS(CLASS_NAME)                                                                                                                                \
+    DELETED_COPY_SEMANTICS(CLASS_NAME);                                                                                                                                            \
+    DELETED_MOVE_SEMANTICS(CLASS_NAME)
 
-#define XDECLARE_DEFAULTED_VIRTULA_DESTRUCTOR(CLASS_NAME) virtual ~CLASS_NAME() = default
+#define DEFAULTED_VIRTULA_DESTRUCTOR(CLASS_NAME) virtual ~CLASS_NAME() = default
 
-#define XDECLARE_DELETED_DESTRUCTOR(CLASS_NAME) ~CLASS_NAME() = delete
+#define DELETED_DESTRUCTOR(CLASS_NAME) ~CLASS_NAME() = delete
 
-#define XDECLARE_DEFAULTED_OVERRIDE_DESTRUCTOR(CLASS_NAME) ~CLASS_NAME() override = default
+#define DEFAULTED_OVERRIDE_DESTRUCTOR(CLASS_NAME) ~CLASS_NAME() override = default
 
-#define XDECLARE_DEFAULTED_DESTRUCTOR(CLASS_NAME) ~CLASS_NAME() = default
+#define DEFAULTED_DESTRUCTOR(CLASS_NAME) ~CLASS_NAME() = default
 
 // lock:
 
@@ -58,19 +58,11 @@ struct lock_guard_helper {
 
 extern template struct lock_guard_helper<std::mutex>;
 
-#if defined LOCK_GUARD
-#    error LOCK_GUARD already defined
-#endif
-
 #define LOCK_GUARD(MUTEX)                                                                                                                                                          \
     for (::lock_guard_helper<typename ::std::remove_cv<typename ::std::remove_reference<decltype(MUTEX)>::type>::type> MUTEX##_lock{                                               \
              ::std::unique_lock<typename ::std::remove_cv<typename ::std::remove_reference<decltype(MUTEX)>::type>::type>{MUTEX}, true};                                           \
          MUTEX##_lock.b;                                                                                                                                                           \
          MUTEX##_lock.b = false)
-
-#if defined LOCK
-#    error LOCK already defined
-#endif
 
 #define LOCK(MUTEX)                                                                                                                                                                \
     std::lock_guard<typename std::remove_cv<typename std::remove_reference<decltype(MUTEX)>::type>::type> MUTEX##_lock { MUTEX }
@@ -122,7 +114,7 @@ extern template struct lock_guard_helper<std::mutex>;
     printf("\n");
 
 #define xinfo(...)                                                                                                                                                                 \
-    printf("INFO line:%d :", __LINE__);                                                                                                                                                  \
+    printf("INFO line:%d :", __LINE__);                                                                                                                                            \
     printf(__VA_ARGS__);                                                                                                                                                           \
     printf("\n");
 
