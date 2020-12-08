@@ -29,7 +29,7 @@ void e_metrics::run_process() {
 }
 
 void e_metrics::process_message_queue() {
-    auto message_v = m_message_queue.wait_and_pop_all();
+    auto message_v = m_message_queue.pop_all();
     if (message_v.empty())
         return;
     for (auto & msg_event : message_v) {

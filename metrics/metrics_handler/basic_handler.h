@@ -28,9 +28,9 @@ inline std::string get_tag(std::string const & str) {
 
 class xtop_basic_handler {
 public:
-    XDECLARE_DEFAULTED_DEFAULT_CONSTRUCTOR(xtop_basic_handler);
-    XDECLARE_DELETED_COPY_DEFAULTED_MOVE_SEMANTICS(xtop_basic_handler);
-    XDECLARE_DEFAULTED_VIRTULA_DESTRUCTOR(xtop_basic_handler);
+    DEFAULTED_DEFAULT_CONSTRUCTOR(xtop_basic_handler);
+    DELETED_COPY_DEFAULTED_MOVE_SEMANTICS(xtop_basic_handler);
+    DEFAULTED_VIRTULA_DESTRUCTOR(xtop_basic_handler);
 
     virtual int calc_dump_width(std::size_t sz) {
         return (sz / 10 + 1) * 10;

@@ -1,12 +1,12 @@
 #pragma once
+#include "metrics_event.h"
 #include "metrics_handler/counter_handler.h"
 #include "metrics_handler/flow_handler.h"
-#include "metrics_handler/timer_handler.h"
 #include "metrics_handler/metrics_packet_info.h"
-#include "base/xrunnable.h"
-#include "base/xthreadsafe_queue.hpp"
-#include "metrics_event.h"
+#include "metrics_handler/timer_handler.h"
 #include "metrics_unit.h"
+#include "mylib/mpsc_queue.h"
+#include "mylib/runnable.h"
 
 #include <chrono>
 #include <map>
@@ -14,10 +14,10 @@
 #include <thread>
 NS_BEG1(metrics)
 
-class e_metrics : public top::xbasic_runnable_t<e_metrics> {
+class e_metrics : public mylib::runnable_t<e_metrics> {
 public:
-    XDECLARE_DELETED_COPY_AND_MOVE_SEMANTICS(e_metrics);
-    XDECLARE_DEFAULTED_OVERRIDE_DESTRUCTOR(e_metrics);
+    DELETED_COPY_AND_MOVE_SEMANTICS(e_metrics);
+    DEFAULTED_OVERRIDE_DESTRUCTOR(e_metrics);
 
     static e_metrics & get_instance() {
         static e_metrics instance;
@@ -28,7 +28,7 @@ public:
     void stop() override;
 
 private:
-    XDECLARE_DEFAULTED_DEFAULT_CONSTRUCTOR(e_metrics);
+    e_metrics() = default;
     void run_process();
     void process_message_queue();
     void update_dump();
@@ -48,8 +48,9 @@ private:
     handler::counter_handler_t m_counter_handler;
     handler::timer_handler_t m_timer_handler;
     handler::flow_handler_t m_flow_handler;
-    constexpr static std::size_t message_queue_size{100000};
-    top::threading::xthreadsafe_queue<event_message, std::vector<event_message>> m_message_queue{message_queue_size};
+    // constexpr static std::size_t message_queue_size{100000};
+    mylib::mpsc_queue<event_message> m_message_queue;
+    // top::threading::xthreadsafe_queue<event_message, std::vector<event_message>> m_message_queue{message_queue_size};
     std::map<std::string, metrics_variant_ptr> m_metrics_hub;  // {metrics_name, metrics_vaiant_ptr}
 };
 
@@ -70,13 +71,13 @@ public:
 };
 
 // #ifdef ENABLE_METRICS
-#define METRICS_INIT()                                                                                                                                                            \
+#define METRICS_INIT()                                                                                                                                                             \
     {                                                                                                                                                                              \
-        auto & ins = metrics::e_metrics::get_instance();                                                                                                                      \
+        auto & ins = metrics::e_metrics::get_instance();                                                                                                                           \
         ins.start();                                                                                                                                                               \
     }
 
-#define SSTR(x) static_cast<std::ostringstream &>((std::ostringstream()  << x)).str()
+#define SSTR(x) static_cast<std::ostringstream &>((std::ostringstream() << x)).str()
 #define ADD_THREAD_HASH(metrics_name) SSTR(metrics_name) + "&0x" + std::to_string(std::hash<std::thread::id>{}(std::this_thread::get_id()))
 #define STR_CONCAT_IMPL(a, b) a##b
 #define STR_CONCAT(str_a, str_b) STR_CONCAT_IMPL(str_a, str_b)
@@ -84,11 +85,11 @@ public:
 #define MICROSECOND(timeout)                                                                                                                                                       \
     std::chrono::microseconds { timeout }
 
-#define METRICS_TIME_RECORD(metrics_name)                                                                                                                                         \
+#define METRICS_TIME_RECORD(metrics_name)                                                                                                                                          \
     metrics::metrics_time_auto STR_CONCAT(metrics_time_auto, __LINE__) { metrics_name }
-#define METRICS_TIME_RECORD_KEY(metrics_name, key)                                                                                                                                \
+#define METRICS_TIME_RECORD_KEY(metrics_name, key)                                                                                                                                 \
     metrics::metrics_time_auto STR_CONCAT(metrics_time_auto, __LINE__) { metrics_name, key }
-#define METRICS_TIME_RECORD_KEY_WITH_TIMEOUT(metrics_name, key, timeout)                                                                                                             \
+#define METRICS_TIME_RECORD_KEY_WITH_TIMEOUT(metrics_name, key, timeout)                                                                                                           \
     metrics::metrics_time_auto STR_CONCAT(metrics_time_auto, __LINE__) { metrics_name, key, MICROSECOND(timeout) }
 
 #define METRICS_TIMER_START(metrics_name) metrics::e_metrics::get_instance().timer_start(ADD_THREAD_HASH(metrics_name), std::chrono::system_clock::now());
@@ -97,7 +98,7 @@ public:
 
 #define METRICS_TIMER_STOP_KEY(metrics_name, key) metrics::e_metrics::get_instance().timer_end(ADD_THREAD_HASH(metrics_name), std::chrono::system_clock::now(), key);
 
-#define METRICS_TIMER_STOP_KEY_WITH_TIMEOUT(metrics_name, key, timeout)                                                                                                              \
+#define METRICS_TIMER_STOP_KEY_WITH_TIMEOUT(metrics_name, key, timeout)                                                                                                            \
     metrics::e_metrics::get_instance().timer_end(ADD_THREAD_HASH(metrics_name), std::chrono::system_clock::now(), key, MICROSECOND(timeout));
 
 #define METRICS_COUNTER_INCREMENT(metrics_name, value) metrics::e_metrics::get_instance().counter_increase(metrics_name, value)
@@ -106,8 +107,8 @@ public:
 
 #define METRICS_FLOW_COUNT(metrics_name, value) metrics::e_metrics::get_instance().flow_count(metrics_name, value, std::chrono::system_clock::now());
 
-#define METRICS_PACKET_INFO(metrics_name, ...)                                                                                                                                    \
-    metrics::handler::metrics_pack_unit STR_CONCAT(packet_info_auto_, __LINE__){metrics_name};                                                                                                       \
+#define METRICS_PACKET_INFO(metrics_name, ...)                                                                                                                                     \
+    metrics::handler::metrics_pack_unit STR_CONCAT(packet_info_auto_, __LINE__){metrics_name};                                                                                     \
     metrics::handler::metrics_packet_impl(STR_CONCAT(packet_info_auto_, __LINE__), __VA_ARGS__);
 
 #define METRICS_XBASE_DATA_CATEGORY_NEW(key) METRICS_COUNTER_INCREMENT("dataobject_cur_xbase_type" + std::to_string(key), 1);

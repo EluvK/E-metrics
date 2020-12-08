@@ -5,9 +5,9 @@ NS_BEG2(metrics, handler)
 
 class counter_handler : public xbasic_handler_t {
 public:
-    XDECLARE_DEFAULTED_DEFAULT_CONSTRUCTOR(counter_handler);
-    XDECLARE_DELETED_COPY_DEFAULTED_MOVE_SEMANTICS(counter_handler);
-    XDECLARE_DEFAULTED_DESTRUCTOR(counter_handler);
+    DEFAULTED_DEFAULT_CONSTRUCTOR(counter_handler);
+    DELETED_COPY_DEFAULTED_MOVE_SEMANTICS(counter_handler);
+    DEFAULTED_DESTRUCTOR(counter_handler);
 
     metrics_variant_ptr init_new_metrics(event_message const & msg) override;
     void dump_metrics_info(metrics_variant_ptr const & metrics_ptr) override;
